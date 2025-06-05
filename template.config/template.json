@@ -1,0 +1,21 @@
+{
+    "$schema": "http://json.schemastore.org/template",
+    "author": "Antartico MicroService Template",
+    "classifications": [ "WebApiMicroservice", "CleanArchitecture" ],
+    "identity": "Antartico.MicroserviceTemplate",
+    "name": "Antartico Microservice Base",
+    "shortName": "microservicio-base",
+    "tags": {
+        "language": "C#",
+        "type": "project"
+    },
+    "sourceName": "N5Now", // Se reemplazará con -n NAME
+    "preferNameDirectory": true,
+    "symbols": {
+        "MyCompany": {
+            "type": "parameter",
+            "defaultValue": "MyCompany",
+            "description": "Antartico MicroService Template."
+        }
+    }
+}
