@@ -1,9 +1,12 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using N5Now.Core.Interfaces;
+using N5Now.Core.Interfaces.Indexer;
 using N5Now.Core.Interfaces.Services;
 using N5Now.Infrastructure.DataBaseIttion;
 using N5Now.Infrastructure.Interfaces;
+using N5Now.Infrastructure.Interfaces.Indexer;
 using N5Now.Infrastructure.Interfaces.Services;
+using Nest;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -54,6 +57,15 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddHttpClient();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<IPermissionService, PermissionService>();
+
+builder.Services.AddSingleton<IElasticClient>(sp =>
+{
+    var settings = new ConnectionSettings(new Uri("http://localhost:9200"))
+        .DefaultIndex("permissions");
+
+    return new ElasticClient(settings);
+});
+builder.Services.AddScoped<IPermissionsIndexer, PermissionsIndexer>();
 //END of Here Adds Customers Services
 
 var app = builder.Build();

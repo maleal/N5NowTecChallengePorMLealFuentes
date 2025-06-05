@@ -1,22 +1,28 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security;
+using System.Security.Permissions;
 using System.Text;
 using System.Threading.Tasks;
 using N5Now.Core.DTOs;
 using N5Now.Core.Entities;
 using N5Now.Core.Interfaces;
+using N5Now.Core.Interfaces.Indexer;
 using N5Now.Core.Interfaces.Services;
+using Nest;
 
 namespace N5Now.Infrastructure.Interfaces.Services
 {
     public class PermissionService : IPermissionService
     {
         private readonly IUnitOfWork _unitOfWork;
-        
-        public PermissionService(IUnitOfWork unitOfWork)
+        private readonly IPermissionsIndexer _permIndexer;
+
+        public PermissionService(IUnitOfWork unitOfWork, IPermissionsIndexer permIndexer)
         {
             _unitOfWork = unitOfWork;
+            _permIndexer = permIndexer;
         }
 
         public async Task<IEnumerable<PermissionResponseDto>> GetPermissionsAsync()
@@ -49,6 +55,20 @@ namespace N5Now.Infrastructure.Interfaces.Services
 
             _unitOfWork.PermissionRepository.UpdateAsync(permi);
             await _unitOfWork.SaveChangesAsync();
+
+#region ELASTIC
+            PermissionType permiType = await _unitOfWork.PermissionTypeRepository.GetByIdAsync(dto.PermissionTypeId);
+            await _permIndexer.IndexAsync(new PermissionsDocument
+            {
+                Id = permi.Id,
+                EmployeeForeName = permi.EmployeeForeName,
+                EmployeeSurName = permi.EmployeeSurName,
+                PermissionsDate = permi.PermissionsDate,
+                PermissionTypeId = permi.PermissionTypeId,
+                PermissionTypeDescription = permiType?.Description ?? "Unknown"
+            });
+#endregion
+
             return true;
             //throw new NotImplementedException();
         }
@@ -76,6 +96,18 @@ namespace N5Now.Infrastructure.Interfaces.Services
                 PermissionsDate = permi.PermissionsDate,
                 PermTypeDescription = permiType.Description,
             };
+
+#region ELASTIC
+            await _permIndexer.IndexAsync(new PermissionsDocument
+            {
+                Id = permi.Id,
+                EmployeeForeName = permi.EmployeeForeName,
+                EmployeeSurName = permi.EmployeeSurName,
+                PermissionsDate = permi.PermissionsDate,
+                PermissionTypeId = permi.PermissionTypeId,
+                PermissionTypeDescription = permiType?.Description ?? "Unknown"
+            });
+#endregion
             return result;
             //throw new NotImplementedException();
         }
