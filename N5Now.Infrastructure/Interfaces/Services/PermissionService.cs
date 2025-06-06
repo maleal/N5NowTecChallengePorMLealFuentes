@@ -20,13 +20,17 @@ namespace N5Now.Infrastructure.Interfaces.Services
         private readonly IUnitOfWork _unitOfWork;
         private readonly IPermissionsIndexer _permIndexer;
         private readonly ILogger<PermissionService> _logger;
+        private readonly IKafkaProducer _kafkaProducer;
 
-        public PermissionService(IUnitOfWork unitOfWork, IPermissionsIndexer permIndexer,
-            ILogger<PermissionService> logger)
+        public PermissionService(IUnitOfWork unitOfWork, 
+            IPermissionsIndexer permIndexer,
+            ILogger<PermissionService> logger,
+            IKafkaProducer kafkaProducer)
         {
             _unitOfWork = unitOfWork;
             _permIndexer = permIndexer;
             _logger = logger;
+            _kafkaProducer = kafkaProducer;
         }
 
         public async Task<IEnumerable<PermissionResponseDto>> GetPermissionsAsync()
@@ -78,6 +82,14 @@ namespace N5Now.Infrastructure.Interfaces.Services
                 PermissionTypeId = permi.PermissionTypeId,
                 PermissionTypeDescription = permiType?.Description ?? "Unknown"
             });
+            #endregion
+
+#region KAFKA-PRODUCER
+            await _kafkaProducer.PublishEventAsync(new KafkaOperationsDto
+            {
+                Id = Guid.NewGuid(),
+                OperationName = "request"
+            });
 #endregion
 
             return true;
@@ -118,7 +130,16 @@ namespace N5Now.Infrastructure.Interfaces.Services
                 PermissionTypeId = permi.PermissionTypeId,
                 PermissionTypeDescription = permiType?.Description ?? "Unknown"
             });
+            #endregion
+
+#region KAFKA-PRODUCER
+            await _kafkaProducer.PublishEventAsync(new KafkaOperationsDto
+            {
+                Id = Guid.NewGuid(),
+                OperationName = "request"
+            });
 #endregion
+
             return result;
             //throw new NotImplementedException();
         }

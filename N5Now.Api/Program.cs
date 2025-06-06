@@ -66,6 +66,7 @@ builder.Services.AddSingleton<IElasticClient>(sp =>
     return new ElasticClient(settings);
 });
 builder.Services.AddScoped<IPermissionsIndexer, PermissionsIndexer>();
+builder.Services.AddSingleton<IKafkaProducer, KafkaProducer>();
 //END of Here Adds Customers Services
 
 var app = builder.Build();
