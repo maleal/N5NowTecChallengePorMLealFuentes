@@ -1,6 +1,0 @@
-@AntarticoMicroserviceTemplate_HostAddress = http://localhost:5134
-
-GET {{AntarticoMicroserviceTemplate_HostAddress}}/weatherforecast/
-Accept: application/json
-
-###
