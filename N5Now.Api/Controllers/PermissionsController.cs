@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics.Eventing.Reader;
 using Microsoft.AspNetCore.Mvc;
 using N5Now.Core.DTOs;
+using N5Now.Core.Entities;
 using N5Now.Core.Interfaces.Services;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
@@ -12,28 +13,30 @@ namespace N5Now.Api.Controllers
     public class PermissionsController : ControllerBase
     {
         private readonly IPermissionService _service;
-        public PermissionsController(IPermissionService permissionService)
+        private readonly ILogger<PermissionsController> _logger;
+
+
+        public PermissionsController(IPermissionService permissionService, ILogger<PermissionsController> logger)
         {
             _service = permissionService;
+            _logger = logger;
         }
 
         // GET: api/<PermissionsController>
         [HttpGet("GetPermissions")]
         public async Task<ActionResult<IEnumerable<PermissionResponseDto>>> Get()
         {
-            try
+            
+            _logger.LogInformation($"GetPermissions: Get All");
+
+            var result = await _service.GetPermissionsAsync();
+            if (result == null)
             {
-                var result = await _service.GetPermissionsAsync();
-                if (result == null)
-                {
-                    return NotFound();
-                }else 
-                    return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                throw new Exception("");
-            }
+                _logger.LogError($"GetPermissions: Error");
+                return NotFound();
+            }else 
+                return Ok(result);
+            
             //return new string[] { "value1", "value2" };
         }
          
@@ -42,9 +45,11 @@ namespace N5Now.Api.Controllers
         [HttpPost("RequestPermissions")]
         public async Task<ActionResult<PermissionResponseDto>> Post([FromBody] PermissionRequestDto dto)
         {
+            _logger.LogInformation($"RequestPermissions: Registrar para Employee:{dto.EmployeeSurName}");
             var result = await _service.RequestPermissionAsync(dto);
             if (result == null)
             {
+                _logger.LogInformation($"RequestPermissions: Error al registrar Employee:{dto.EmployeeSurName}");
                 return NotFound();
             }
             return Ok(result);
